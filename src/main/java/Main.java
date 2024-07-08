@@ -580,14 +580,17 @@ public class Main {
 					.format("%.2f",
 							totalFacturaAResponsableInscriptoPositivos + totalFacturaZ_A_Positivos_ResponsableInscripto)
 					.replace(".", ",");
-			String formattedOpCfMonExentos = String
-					.format("%.2f", totalFacturaZ_A_Positivos_Monotributistas
-							+ totalFacturaZ_B_Positivos_Monotributistas + totalFacturaZ_B_Positivos_ConsumidoresFinales
-							+ totalFacturaZ_A_Positivos_ExentosNoAlcanzados
-							+ totalFacturaZ_B_Positivos_ExentosNoAlcanzados + totalFacturaAMonotributistaPositivos
-							+ totalFacturaAExentosNoAlcanzadosPositivos + totalFacturaBConsumidorFinalPositivos
-							+ totalFacturaBMonotributistaPositivos + totalFacturaBExentosNoAlcanzadosPositivos)
+			String formattedOpCfExentos = String.format("%.2f",
+					totalFacturaZ_B_Positivos_ConsumidoresFinales + totalFacturaZ_A_Positivos_ExentosNoAlcanzados
+							+ totalFacturaZ_B_Positivos_ExentosNoAlcanzados + totalFacturaAExentosNoAlcanzadosPositivos
+							+ totalFacturaBConsumidorFinalPositivos + totalFacturaBExentosNoAlcanzadosPositivos)
 					.replace(".", ",");
+			String formattedOpMon = String
+					.format("%.2f",
+							totalFacturaZ_A_Positivos_Monotributistas + totalFacturaZ_B_Positivos_Monotributistas
+									+ totalFacturaAMonotributistaPositivos + totalFacturaBMonotributistaPositivos)
+					.replace(".", ",");
+
 			String formattedtotalFacturaZAB_ABPositivos = String
 					.format("%.2f",
 							totalFacturaAPositivosFacturaZ_A_Positivos + totalFacturaBPositivosFacturaZ_B_Positivos)
@@ -692,14 +695,18 @@ public class Main {
 			String formattedOpRiIva = String.format("%.2f",
 					totalFacturaAResponsableInscriptoPositivosIva + totalFacturaZ_A_Positivos_ResponsableInscriptoIva)
 					.replace(".", ",");
-			String formattedOpCfMonExentosIva = String.format("%.2f",
-					totalFacturaZ_A_Positivos_MonotributistasIva + totalFacturaZ_B_Positivos_MonotributistasIva
-							+ totalFacturaZ_B_Positivos_ConsumidoresFinalesIva
-							+ totalFacturaZ_A_Positivos_ExentosNoAlcanzadosIva
-							+ totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva + totalFacturaAMonotributistaPositivosIva
+			String formattedOpCfExentosIva = String.format("%.2f",
+					totalFacturaZ_B_Positivos_ConsumidoresFinalesIva + totalFacturaZ_A_Positivos_ExentosNoAlcanzadosIva
+							+ totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva
 							+ totalFacturaAExentosNoAlcanzadosPositivosIva + totalFacturaBConsumidorFinalPositivosIva
-							+ totalFacturaBMonotributistaPositivosIva + totalFacturaBExentosNoAlcanzadosPositivosIva)
+							+ totalFacturaBExentosNoAlcanzadosPositivosIva)
 					.replace(".", ",");
+			String formattedOpMonIva = String
+					.format("%.2f",
+							totalFacturaZ_A_Positivos_MonotributistasIva + totalFacturaZ_B_Positivos_MonotributistasIva
+									+ totalFacturaAMonotributistaPositivosIva + totalFacturaBMonotributistaPositivosIva)
+					.replace(".", ",");
+
 			String formattedtotalFacturaZAB_ABPositivosIva = String.format("%.2f",
 					totalFacturaAPositivosFacturaZ_A_PositivosIva + totalFacturaBPositivosFacturaZ_B_PositivosIva)
 					.replace(".", ",");
@@ -842,8 +849,10 @@ public class Main {
 					+ formattedTotalFacturaZ_B_Positivos_ExentosNoAlcanzados + " \tIVA\t "
 					+ formattedTotalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva);
 
-			System.out.println("Operaciones con CF, MON y EXENTOS NO ALCANZADOS: " + formattedOpCfMonExentos
-					+ " \tIVA\t " + formattedOpCfMonExentosIva);
+			System.out.println("Operaciones con CF y EXENTOS NO ALCANZADOS: " + formattedOpCfExentos + " \tIVA\t "
+					+ formattedOpCfExentosIva);
+			System.out.println("Operaciones con MON: " + formattedOpMon + " \tIVA\t " + formattedOpMonIva);
+
 			System.out.println("Total Facturas A, B y Z (que son A y B) Positivos: "
 					+ formattedtotalFacturaZAB_ABPositivos + " \tIVA\t " + formattedtotalFacturaZAB_ABPositivosIva);
 			System.out.println("Total Facturas A, B y Z (que son A y B) Negativos: "
