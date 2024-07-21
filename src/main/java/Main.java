@@ -94,6 +94,13 @@ public class Main {
 		double totalFacturaZ_B_Positivos_ExentosNoAlcanzados = 0.0;
 		double totalFacturaZ_A_Positivos_ResponsableInscripto = 0.0;
 
+		double totalFacturaZ_A_Negativos_Monotributistas = 0.0;
+		double totalFacturaZ_A_Negativos_ResponsableInscripto = 0.0;
+		double totalFacturaZ_A_Negativos_ExentosNoAlcanzados = 0.0;
+		double totalFacturaZ_B_Negativos_Monotributistas = 0.0;
+		double totalFacturaZ_B_Negativos_ExentosNoAlcanzados = 0.0;
+		double totalFacturaZ_B_Negativos_ConsumidoresFinales = 0.0;
+
 		// Declaraciones Total Iva
 		double totalFacturaAResponsableInscriptoPositivosIva = 0.0;
 		double totalFacturaAResponsableInscriptoNegativosIva = 0.0;
@@ -140,6 +147,15 @@ public class Main {
 		double totalFacturaZ_A_Positivos_ExentosNoAlcanzadosIva = 0.0;
 		double totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva = 0.0;
 		double totalFacturaZ_A_Positivos_ResponsableInscriptoIva = 0.0;
+
+		double totalFacturaZ_A_Negativos_MonotributistasIva = 0.0;
+		double totalFacturaZ_A_Negativos_ResponsableInscriptoIva = 0.0;
+		double totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva = 0.0;
+		double totalFacturaZ_B_Negativos_MonotributistasIva = 0.0;
+		double totalFacturaZ_B_Negativos_ConsumidoresFinalesIva = 0.0;
+		double totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva = 0.0;
+
+		// Declaraciones Total Neto Gravado
 
 		try (FileInputStream fis = new FileInputStream(filePath); Workbook workbook = new XSSFWorkbook(fis)) {
 			Sheet sheet = workbook.getSheetAt(0);
@@ -425,6 +441,9 @@ public class Main {
 									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
 									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
+									totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+									totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
 								}
 								totalFacturaAFacturaZ_A += totalNetoGravado;
 								totalFacturaAFacturaZ_AIva += totalIva;
@@ -443,12 +462,18 @@ public class Main {
 									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
 									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
+									totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+									totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
 								} else if (totalNetoGravado < 0) {
 									totalFacturaZ_A_Negativos += totalNetoGravado;
 									totalFacturaZ_A_NegativosIva += totalIva;
 
 									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
 									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+									totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+									totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
 
 								}
 								totalFacturaAFacturaZ_A += totalNetoGravado;
@@ -479,6 +504,9 @@ public class Main {
 									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
 									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
+									totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+									totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
 								}
 								totalFacturaBFacturaZ_B += totalNetoGravado;
 								totalFacturaBFacturaZ_BIva += totalIva;
@@ -506,6 +534,9 @@ public class Main {
 
 									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
 									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+									totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+									totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
 
 								}
 								totalFacturaBFacturaZ_B += totalNetoGravado;
@@ -611,6 +642,19 @@ public class Main {
 			String formattedTotalFacturaZ_A_Positivos_ResponsableInscripto = String
 					.format("%.2f", totalFacturaZ_A_Positivos_ResponsableInscripto).replace(".", ",");
 
+			String formattedTotalFacturaZ_A_Negativos_Monotributistas = String
+					.format("%.2f", totalFacturaZ_A_Negativos_Monotributistas).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_Monotributistas = String
+					.format("%.2f", totalFacturaZ_B_Negativos_Monotributistas).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_ConsumidoresFinales = String
+					.format("%.2f", totalFacturaZ_B_Negativos_ConsumidoresFinales).replace(".", ",");
+			String formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzados = String
+					.format("%.2f", totalFacturaZ_A_Negativos_ExentosNoAlcanzados).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzados = String
+					.format("%.2f", totalFacturaZ_B_Negativos_ExentosNoAlcanzados).replace(".", ",");
+			String formattedTotalFacturaZ_A_Negativos_ResponsableInscripto = String
+					.format("%.2f", totalFacturaZ_A_Negativos_ResponsableInscripto).replace(".", ",");
+
 			String formattedOpRi = String
 					.format("%.2f",
 							totalFacturaAResponsableInscriptoPositivos + totalFacturaZ_A_Positivos_ResponsableInscripto)
@@ -625,6 +669,20 @@ public class Main {
 							totalFacturaZ_A_Positivos_Monotributistas + totalFacturaZ_B_Positivos_Monotributistas
 									+ totalFacturaAMonotributistaPositivos + totalFacturaBMonotributistaPositivos)
 					.replace(".", ",");
+
+			String formattedOpRiCredito = String
+					.format("%.2f",
+							totalFacturaAResponsableInscriptoNegativos + totalFacturaZ_A_Negativos_ResponsableInscripto)
+					.replace(".", ",");
+
+			String formattedOpCfExentosMonCredito = String.format("%.2f",
+					totalFacturaZ_B_Negativos_ConsumidoresFinales + totalFacturaZ_A_Negativos_ExentosNoAlcanzados
+							+ totalFacturaZ_B_Negativos_ExentosNoAlcanzados + totalFacturaAExentosNoAlcanzadosNegativos
+							+ totalFacturaBConsumidorFinalNegativos + totalFacturaBExentosNoAlcanzadosNegativos
+							+ totalFacturaZ_A_Negativos_Monotributistas + totalFacturaZ_B_Negativos_Monotributistas
+							+ totalFacturaAMonotributistaNegativos + totalFacturaBMonotributistaNegativos)
+					.replace(".", ",");
+
 			String formattedtotalFacturaZAB_ABPositivos = String
 					.format("%.2f",
 							totalFacturaAPositivosFacturaZ_A_Positivos + totalFacturaBPositivosFacturaZ_B_Positivos)
@@ -726,6 +784,19 @@ public class Main {
 			String formattedTotalFacturaZ_A_Positivos_ResponsableInscriptoIva = String
 					.format("%.2f", totalFacturaZ_A_Positivos_ResponsableInscriptoIva).replace(".", ",");
 
+			String formattedTotalFacturaZ_A_Negativos_MonotributistasIva = String
+					.format("%.2f", totalFacturaZ_A_Negativos_MonotributistasIva).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_MonotributistasIva = String
+					.format("%.2f", totalFacturaZ_B_Negativos_MonotributistasIva).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_ConsumidoresFinalesIva = String
+					.format("%.2f", totalFacturaZ_B_Negativos_ConsumidoresFinalesIva).replace(".", ",");
+			String formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva = String
+					.format("%.2f", totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva).replace(".", ",");
+			String formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva = String
+					.format("%.2f", totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva).replace(".", ",");
+			String formattedTotalFacturaZ_A_Negativos_ResponsableInscriptoIva = String
+					.format("%.2f", totalFacturaZ_A_Negativos_ResponsableInscriptoIva).replace(".", ",");
+
 			String formattedOpRiIva = String.format("%.2f",
 					totalFacturaAResponsableInscriptoPositivosIva + totalFacturaZ_A_Positivos_ResponsableInscriptoIva)
 					.replace(".", ",");
@@ -740,6 +811,21 @@ public class Main {
 							totalFacturaZ_A_Positivos_MonotributistasIva + totalFacturaZ_B_Positivos_MonotributistasIva
 									+ totalFacturaAMonotributistaPositivosIva + totalFacturaBMonotributistaPositivosIva)
 					.replace(".", ",");
+
+			String formattedOpRiCreditoIva = String.format("%.2f",
+					totalFacturaAResponsableInscriptoNegativosIva + totalFacturaZ_A_Negativos_ResponsableInscriptoIva)
+					.replace(".", ",");
+
+			String formattedOpCfExentosMonCreditoIva = String.format("%.2f",
+					totalFacturaZ_B_Negativos_ConsumidoresFinalesIva + totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva
+							+ totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva
+							+ totalFacturaAExentosNoAlcanzadosNegativosIva + totalFacturaBConsumidorFinalNegativosIva
+							+ totalFacturaBExentosNoAlcanzadosNegativosIva
+							+ totalFacturaZ_A_Negativos_MonotributistasIva
+							+ totalFacturaZ_B_Negativos_MonotributistasIva + totalFacturaAMonotributistaNegativosIva
+							+ totalFacturaBMonotributistaNegativosIva)
+					.replace(".", ",");
+
 			String formattedtotalFacturaZAB_ABPositivosIva = String.format("%.2f",
 					totalFacturaAPositivosFacturaZ_A_PositivosIva + totalFacturaBPositivosFacturaZ_B_PositivosIva)
 					.replace(".", ",");
@@ -862,7 +948,7 @@ public class Main {
 					+ formattedTotalFacturaZ_A_Positivos_ResponsableInscripto + " \tIVA\t "
 					+ formattedTotalFacturaZ_A_Positivos_ResponsableInscriptoIva);
 			System.out.println(
-					"Operaciones con responsables Inscriptos): " + formattedOpRi + " \tIVA\t " + formattedOpRiIva);
+					"Operaciones con responsables Inscriptos: " + formattedOpRi + " \tIVA\t " + formattedOpRiIva);
 
 			System.out.println("Total Factura Z Que Son Factura A Positivos Monotributistas: "
 					+ formattedTotalFacturaZ_A_Positivos_Monotributistas + " \tIVA\t "
@@ -886,6 +972,35 @@ public class Main {
 			System.out.println("Operaciones con CF y EXENTOS NO ALCANZADOS: " + formattedOpCfExentos + " \tIVA\t "
 					+ formattedOpCfExentosIva);
 			System.out.println("Operaciones con MON: " + formattedOpMon + " \tIVA\t " + formattedOpMonIva);
+
+			System.out.println("Total Factura Z Que Son Factura A Negativos Responsable Inscripto : "
+					+ formattedTotalFacturaZ_A_Negativos_ResponsableInscripto + " \tIVA\t "
+					+ formattedTotalFacturaZ_A_Negativos_ResponsableInscriptoIva);
+
+			System.out.println("Operaciones con responsables Inscriptos (Crédito): " + formattedOpRiCredito
+					+ " \tIVA\t " + formattedOpRiCreditoIva);
+
+			System.out.println("Total Factura Z Que Son Factura A Negativos Monotributistas: "
+					+ formattedTotalFacturaZ_A_Negativos_Monotributistas + " \tIVA\t "
+					+ formattedTotalFacturaZ_A_Negativos_MonotributistasIva);
+			System.out.println("Total Factura Z Que Son Factura B Negativos Monotributistas: "
+					+ formattedTotalFacturaZ_B_Negativos_Monotributistas + " \tIVA\t "
+					+ formattedTotalFacturaZ_B_Negativos_MonotributistasIva);
+
+			System.out.println("Total Factura Z Que son Factura B Negativos Consumidores Finales: "
+					+ formattedTotalFacturaZ_B_Negativos_ConsumidoresFinales + " \tIVA\t "
+					+ formattedTotalFacturaZ_B_Negativos_ConsumidoresFinalesIva);
+
+			System.out.println("Total Factura Z Que Son Factura A Negativos Exentos No Alcanzados: "
+					+ formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzados + " \tIVA\t "
+					+ formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva);
+
+			System.out.println("Total Factura Z Que son Factura B Negativos Exentos No Alcanzados: "
+					+ formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzados + " \tIVA\t "
+					+ formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva);
+
+			System.out.println("Operaciones con CF, MON y EXENTOS NO ALCANZADOS (Crédito): "
+					+ formattedOpCfExentosMonCredito + " \tIVA\t " + formattedOpCfExentosMonCreditoIva);
 
 			System.out.println("Total Facturas A, B y Z (que son A y B) Positivos: "
 					+ formattedtotalFacturaZAB_ABPositivos + " \tIVA\t " + formattedtotalFacturaZAB_ABPositivosIva);
@@ -974,6 +1089,13 @@ public class Main {
 				double totalFacturaZ_B_Positivos_ExentosNoAlcanzados = 0.0;
 				double totalFacturaZ_A_Positivos_ResponsableInscripto = 0.0;
 
+				double totalFacturaZ_A_Negativos_Monotributistas = 0.0;
+				double totalFacturaZ_A_Negativos_ResponsableInscripto = 0.0;
+				double totalFacturaZ_A_Negativos_ExentosNoAlcanzados = 0.0;
+				double totalFacturaZ_B_Negativos_Monotributistas = 0.0;
+				double totalFacturaZ_B_Negativos_ExentosNoAlcanzados = 0.0;
+				double totalFacturaZ_B_Negativos_ConsumidoresFinales = 0.0;
+
 				// Declaraciones Total Iva
 				double totalFacturaAResponsableInscriptoPositivosIva = 0.0;
 				double totalFacturaAResponsableInscriptoNegativosIva = 0.0;
@@ -1020,6 +1142,13 @@ public class Main {
 				double totalFacturaZ_A_Positivos_ExentosNoAlcanzadosIva = 0.0;
 				double totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva = 0.0;
 				double totalFacturaZ_A_Positivos_ResponsableInscriptoIva = 0.0;
+
+				double totalFacturaZ_A_Negativos_MonotributistasIva = 0.0;
+				double totalFacturaZ_A_Negativos_ResponsableInscriptoIva = 0.0;
+				double totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva = 0.0;
+				double totalFacturaZ_B_Negativos_MonotributistasIva = 0.0;
+				double totalFacturaZ_B_Negativos_ConsumidoresFinalesIva = 0.0;
+				double totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva = 0.0;
 
 				List<Row> rows = puntoDeVentaMap.get(puntoDeVenta);
 				for (Row row : rows) {
@@ -1301,6 +1430,9 @@ public class Main {
 										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
 										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
+										totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+										totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
 									}
 									totalFacturaAFacturaZ_A += totalNetoGravado;
 									totalFacturaAFacturaZ_AIva += totalIva;
@@ -1319,12 +1451,18 @@ public class Main {
 										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
 										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
+										totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
 									} else if (totalNetoGravado < 0) {
 										totalFacturaZ_A_Negativos += totalNetoGravado;
 										totalFacturaZ_A_NegativosIva += totalIva;
 
 										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
 										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
 
 									}
 									totalFacturaAFacturaZ_A += totalNetoGravado;
@@ -1355,6 +1493,9 @@ public class Main {
 										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
 										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
+										totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
 									}
 									totalFacturaBFacturaZ_B += totalNetoGravado;
 									totalFacturaBFacturaZ_BIva += totalIva;
@@ -1382,6 +1523,9 @@ public class Main {
 
 										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
 										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
 
 									}
 									totalFacturaBFacturaZ_B += totalNetoGravado;
@@ -1495,6 +1639,19 @@ public class Main {
 				String formattedTotalFacturaZ_A_Positivos_ResponsableInscripto = String
 						.format("%.2f", totalFacturaZ_A_Positivos_ResponsableInscripto).replace(".", ",");
 
+				String formattedTotalFacturaZ_A_Negativos_Monotributistas = String
+						.format("%.2f", totalFacturaZ_A_Negativos_Monotributistas).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_Monotributistas = String
+						.format("%.2f", totalFacturaZ_B_Negativos_Monotributistas).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_ConsumidoresFinales = String
+						.format("%.2f", totalFacturaZ_B_Negativos_ConsumidoresFinales).replace(".", ",");
+				String formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzados = String
+						.format("%.2f", totalFacturaZ_A_Negativos_ExentosNoAlcanzados).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzados = String
+						.format("%.2f", totalFacturaZ_B_Negativos_ExentosNoAlcanzados).replace(".", ",");
+				String formattedTotalFacturaZ_A_Negativos_ResponsableInscripto = String
+						.format("%.2f", totalFacturaZ_A_Negativos_ResponsableInscripto).replace(".", ",");
+
 				String formattedOpRi = String.format("%.2f",
 						totalFacturaAResponsableInscriptoPositivos + totalFacturaZ_A_Positivos_ResponsableInscripto)
 						.replace(".", ",");
@@ -1509,6 +1666,20 @@ public class Main {
 								totalFacturaZ_A_Positivos_Monotributistas + totalFacturaZ_B_Positivos_Monotributistas
 										+ totalFacturaAMonotributistaPositivos + totalFacturaBMonotributistaPositivos)
 						.replace(".", ",");
+
+				String formattedOpRiCredito = String.format("%.2f",
+						totalFacturaAResponsableInscriptoNegativos + totalFacturaZ_A_Negativos_ResponsableInscripto)
+						.replace(".", ",");
+
+				String formattedOpCfExentosMonCredito = String.format("%.2f",
+						totalFacturaZ_B_Negativos_ConsumidoresFinales + totalFacturaZ_A_Negativos_ExentosNoAlcanzados
+								+ totalFacturaZ_B_Negativos_ExentosNoAlcanzados
+								+ totalFacturaAExentosNoAlcanzadosNegativos + totalFacturaBConsumidorFinalNegativos
+								+ totalFacturaBExentosNoAlcanzadosNegativos + totalFacturaZ_A_Negativos_Monotributistas
+								+ totalFacturaZ_B_Negativos_Monotributistas + totalFacturaAMonotributistaNegativos
+								+ totalFacturaBMonotributistaNegativos)
+						.replace(".", ",");
+
 				String formattedtotalFacturaZAB_ABPositivos = String
 						.format("%.2f",
 								totalFacturaAPositivosFacturaZ_A_Positivos + totalFacturaBPositivosFacturaZ_B_Positivos)
@@ -1610,6 +1781,19 @@ public class Main {
 				String formattedTotalFacturaZ_A_Positivos_ResponsableInscriptoIva = String
 						.format("%.2f", totalFacturaZ_A_Positivos_ResponsableInscriptoIva).replace(".", ",");
 
+				String formattedTotalFacturaZ_A_Negativos_MonotributistasIva = String
+						.format("%.2f", totalFacturaZ_A_Negativos_MonotributistasIva).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_MonotributistasIva = String
+						.format("%.2f", totalFacturaZ_B_Negativos_MonotributistasIva).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_ConsumidoresFinalesIva = String
+						.format("%.2f", totalFacturaZ_B_Negativos_ConsumidoresFinalesIva).replace(".", ",");
+				String formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva = String
+						.format("%.2f", totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva).replace(".", ",");
+				String formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva = String
+						.format("%.2f", totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva).replace(".", ",");
+				String formattedTotalFacturaZ_A_Negativos_ResponsableInscriptoIva = String
+						.format("%.2f", totalFacturaZ_A_Negativos_ResponsableInscriptoIva).replace(".", ",");
+
 				String formattedOpRiIva = String.format("%.2f", totalFacturaAResponsableInscriptoPositivosIva
 						+ totalFacturaZ_A_Positivos_ResponsableInscriptoIva).replace(".", ",");
 				String formattedOpCfExentosIva = String.format("%.2f", totalFacturaZ_B_Positivos_ConsumidoresFinalesIva
@@ -1621,6 +1805,22 @@ public class Main {
 						totalFacturaZ_A_Positivos_MonotributistasIva + totalFacturaZ_B_Positivos_MonotributistasIva
 								+ totalFacturaAMonotributistaPositivosIva + totalFacturaBMonotributistaPositivosIva)
 						.replace(".", ",");
+
+				String formattedOpRiCreditoIva = String.format("%.2f", totalFacturaAResponsableInscriptoNegativosIva
+						+ totalFacturaZ_A_Negativos_ResponsableInscriptoIva).replace(".", ",");
+
+				String formattedOpCfExentosMonCreditoIva = String.format("%.2f",
+						totalFacturaZ_B_Negativos_ConsumidoresFinalesIva
+								+ totalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva
+								+ totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva
+								+ totalFacturaAExentosNoAlcanzadosNegativosIva
+								+ totalFacturaBConsumidorFinalNegativosIva
+								+ totalFacturaBExentosNoAlcanzadosNegativosIva
+								+ totalFacturaZ_A_Negativos_MonotributistasIva
+								+ totalFacturaZ_B_Negativos_MonotributistasIva + totalFacturaAMonotributistaNegativosIva
+								+ totalFacturaBMonotributistaNegativosIva)
+						.replace(".", ",");
+
 				String formattedtotalFacturaZAB_ABPositivosIva = String.format("%.2f",
 						totalFacturaAPositivosFacturaZ_A_PositivosIva + totalFacturaBPositivosFacturaZ_B_PositivosIva)
 						.replace(".", ",");
@@ -1631,8 +1831,6 @@ public class Main {
 						.format("%.2f", totalFacturaAFacturaZ_AIva + totalFacturaBFacturaZ_BIva).replace(".", ",");
 
 				// Mostrar los resultados formateados
-
-				System.out.println(ANSI_YELLOW + "\nPunto de venta: " + puntoDeVenta + ANSI_RESET);
 
 				System.out.println("\nTotales acumulados Neto Gravado con IVA:");
 
@@ -1746,7 +1944,7 @@ public class Main {
 						+ formattedTotalFacturaZ_A_Positivos_ResponsableInscripto + " \tIVA\t "
 						+ formattedTotalFacturaZ_A_Positivos_ResponsableInscriptoIva);
 				System.out.println(
-						"Operaciones con responsables Inscriptos): " + formattedOpRi + " \tIVA\t " + formattedOpRiIva);
+						"Operaciones con responsables Inscriptos: " + formattedOpRi + " \tIVA\t " + formattedOpRiIva);
 
 				System.out.println("Total Factura Z Que Son Factura A Positivos Monotributistas: "
 						+ formattedTotalFacturaZ_A_Positivos_Monotributistas + " \tIVA\t "
@@ -1770,6 +1968,35 @@ public class Main {
 				System.out.println("Operaciones con CF y EXENTOS NO ALCANZADOS: " + formattedOpCfExentos + " \tIVA\t "
 						+ formattedOpCfExentosIva);
 				System.out.println("Operaciones con MON: " + formattedOpMon + " \tIVA\t " + formattedOpMonIva);
+
+				System.out.println("Total Factura Z Que Son Factura A Negativos Responsable Inscripto : "
+						+ formattedTotalFacturaZ_A_Negativos_ResponsableInscripto + " \tIVA\t "
+						+ formattedTotalFacturaZ_A_Negativos_ResponsableInscriptoIva);
+
+				System.out.println("Operaciones con responsables Inscriptos (Crédito): " + formattedOpRiCredito
+						+ " \tIVA\t " + formattedOpRiCreditoIva);
+
+				System.out.println("Total Factura Z Que Son Factura A Negativos Monotributistas: "
+						+ formattedTotalFacturaZ_A_Negativos_Monotributistas + " \tIVA\t "
+						+ formattedTotalFacturaZ_A_Negativos_MonotributistasIva);
+				System.out.println("Total Factura Z Que Son Factura B Negativos Monotributistas: "
+						+ formattedTotalFacturaZ_B_Negativos_Monotributistas + " \tIVA\t "
+						+ formattedTotalFacturaZ_B_Negativos_MonotributistasIva);
+
+				System.out.println("Total Factura Z Que son Factura B Negativos Consumidores Finales: "
+						+ formattedTotalFacturaZ_B_Negativos_ConsumidoresFinales + " \tIVA\t "
+						+ formattedTotalFacturaZ_B_Negativos_ConsumidoresFinalesIva);
+
+				System.out.println("Total Factura Z Que Son Factura A Negativos Exentos No Alcanzados: "
+						+ formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzados + " \tIVA\t "
+						+ formattedTotalFacturaZ_A_Negativos_ExentosNoAlcanzadosIva);
+
+				System.out.println("Total Factura Z Que son Factura B Negativos Exentos No Alcanzados: "
+						+ formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzados + " \tIVA\t "
+						+ formattedTotalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva);
+
+				System.out.println("Operaciones con CF, MON y EXENTOS NO ALCANZADOS (Crédito): "
+						+ formattedOpCfExentosMonCredito + " \tIVA\t " + formattedOpCfExentosMonCreditoIva);
 
 				System.out.println("Total Facturas A, B y Z (que son A y B) Positivos: "
 						+ formattedtotalFacturaZAB_ABPositivos + " \tIVA\t " + formattedtotalFacturaZAB_ABPositivosIva);
