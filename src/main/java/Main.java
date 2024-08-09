@@ -7,11 +7,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Main {
 
@@ -174,6 +176,9 @@ public class Main {
 			rowIterator.next(); // Skip first header row
 			rowIterator.next(); // Skip second header row
 
+			Set<String> letrasEncontradas = new HashSet<>();
+			boolean existenRepetidos = false;
+
 			while (rowIterator.hasNext()) {
 				Row row = rowIterator.next();
 				Cell totalNetoGravadoCell = row.getCell(7);
@@ -187,381 +192,402 @@ public class Main {
 
 				boolean requiereRevision = false;
 
-				if (totalNetoGravadoCell != null) {
+				if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+					String letra = letraCell.getStringCellValue();
 
-					try {
-
-						if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
-							totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
-						} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
-							totalNetoGravado = Double
-									.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
-						} else {
-							System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
-							continue;
-						}
-						if (totalIvaCell.getCellType() == CellType.NUMERIC) {
-							totalIva = totalIvaCell.getNumericCellValue();
-						} else if (totalIvaCell.getCellType() == CellType.STRING) {
-							totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
-						} else {
-							System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
-							continue;
-						}
-
-					} catch (NumberFormatException e) {
-						System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
-						continue;
+					// Validar si la letra ya ha sido procesada
+					if (letrasEncontradas.contains(letra)) {
+						System.out.println("Letra repetida encontrada: " + letra);
+						// Marca el registro para revisión o toma otra acción
+						requiereRevision = true;
+						existenRepetidos = true;
+					} else {
+						// Agregar la letra al conjunto para rastrear las repetidas
+						letrasEncontradas.add(letra);
 					}
 
-					String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
-					String formattedTotalIva = String.format("%.2f", totalIva);
+					// Procesamiento de los registros según tu lógica original
+					// Aquí va el resto de tu código de procesamiento
+					// ...
 
-					if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
-						String letra = letraCell.getStringCellValue();
-						String numeroCliente = numeroClienteCell != null
-								&& numeroClienteCell.getCellType() == CellType.STRING
-										? numeroClienteCell.getStringCellValue()
-										: "";
-						String razonSocial = razonSocialCell != null && razonSocialCell.getCellType() == CellType.STRING
-								? razonSocialCell.getStringCellValue()
-								: "";
-						String tipoDocumento = tipoDocumentoCell != null
-								&& tipoDocumentoCell.getCellType() == CellType.STRING
-										? tipoDocumentoCell.getStringCellValue()
-										: "";
-						String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
-								? codigoIvaCell.getStringCellValue()
-								: "";
-						String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
-								? exentoCell.getStringCellValue()
-								: "";
+					if (totalNetoGravadoCell != null) {
 
-						if (totalNetoGravado < 0) {
-							System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
-									+ " - IVA: " + formattedTotalIva.replace(".", ","));
-						} else {
-							System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
-									+ " - IVA: " + formattedTotalIva.replace(".", ","));
+						try {
+
+							if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
+								totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
+							} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
+								totalNetoGravado = Double
+										.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
+							} else {
+								System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
+								continue;
+							}
+							if (totalIvaCell.getCellType() == CellType.NUMERIC) {
+								totalIva = totalIvaCell.getNumericCellValue();
+							} else if (totalIvaCell.getCellType() == CellType.STRING) {
+								totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
+							} else {
+								System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
+								continue;
+							}
+
+						} catch (NumberFormatException e) {
+							System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
+							continue;
 						}
 
-						if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAMonotributistaPositivos += totalNetoGravado;
-									totalFacturaAMonotributistaPositivosIva += totalIva;
+						String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
+						String formattedTotalIva = String.format("%.2f", totalIva);
 
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+						if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+							letra = letraCell.getStringCellValue();
+							String numeroCliente = numeroClienteCell != null
+									&& numeroClienteCell.getCellType() == CellType.STRING
+											? numeroClienteCell.getStringCellValue()
+											: "";
+							String razonSocial = razonSocialCell != null
+									&& razonSocialCell.getCellType() == CellType.STRING
+											? razonSocialCell.getStringCellValue()
+											: "";
+							String tipoDocumento = tipoDocumentoCell != null
+									&& tipoDocumentoCell.getCellType() == CellType.STRING
+											? tipoDocumentoCell.getStringCellValue()
+											: "";
+							String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
+									? codigoIvaCell.getStringCellValue()
+									: "";
+							String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
+									? exentoCell.getStringCellValue()
+									: "";
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAMonotributistaNegativos += totalNetoGravado;
-									totalFacturaAMonotributistaNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAMonotributista += totalNetoGravado;
-								totalFacturaAMonotributistaIva += totalIva;
-
-							} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-								System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
-									totalFacturaAResponsableInscriptoPositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
-									totalFacturaAResponsableInscriptoNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAResponsableInscripto += totalNetoGravado;
-								totalFacturaAResponsableInscriptoIva += totalIva;
-
-							} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAExentosNoAlcanzados += totalNetoGravado;
-								totalFacturaAExentosNoAlcanzadosIva += totalIva;
-
+							if (totalNetoGravado < 0) {
+								System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
+										+ " - IVA: " + formattedTotalIva.replace(".", ","));
+							} else {
+								System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
+										+ " - IVA: " + formattedTotalIva.replace(".", ","));
 							}
-							if (totalNetoGravado > 0) {
-								totalFacturaAPositivos += totalNetoGravado;
-								totalFacturaAPositivosIva += totalIva;
 
-							} else if (totalNetoGravado < 0) {
-								totalFacturaANegativos += totalNetoGravado;
-								totalFacturaANegativosIva += totalIva;
+							if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAMonotributistaPositivos += totalNetoGravado;
+										totalFacturaAMonotributistaPositivosIva += totalIva;
 
-							}
-							totalFacturaA += totalNetoGravado;
-							totalFacturaAIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-							totalFacturaAFacturaZ_A += totalNetoGravado;
-							totalFacturaAFacturaZ_AIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAMonotributistaNegativos += totalNetoGravado;
+										totalFacturaAMonotributistaNegativosIva += totalIva;
 
-						} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBMonotributistaPositivos += totalNetoGravado;
-									totalFacturaBMonotributistaPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+									}
+									totalFacturaAMonotributista += totalNetoGravado;
+									totalFacturaAMonotributistaIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBMonotributistaNegativos += totalNetoGravado;
-									totalFacturaBMonotributistaNegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
+										totalFacturaAResponsableInscriptoPositivosIva += totalIva;
 
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								}
-								totalFacturaBMonotributista += totalNetoGravado;
-								totalFacturaBMonotributistaIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
+										totalFacturaAResponsableInscriptoNegativosIva += totalIva;
 
-							} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+									}
+									totalFacturaAResponsableInscripto += totalNetoGravado;
+									totalFacturaAResponsableInscriptoIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
 
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								}
-								totalFacturaBExentosNoAlcanzados += totalNetoGravado;
-								totalFacturaBExentosNoAlcanzadosIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
 
-							} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-									|| codigoIva.equalsIgnoreCase("C.Fin")) {
-								System.out.println("Factura " + letra + " - Consumidor Final: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
-									totalFacturaBConsumidorFinalPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
-									totalFacturaBConsumidorFinalNegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+									}
+									totalFacturaAExentosNoAlcanzados += totalNetoGravado;
+									totalFacturaAExentosNoAlcanzadosIva += totalIva;
 
 								}
-								totalFacturaBConsumidorFinal += totalNetoGravado;
-								totalFacturaBConsumidorFinalIva += totalIva;
-
-							}
-							if (totalNetoGravado > 0) {
-								totalFacturaBPositivos += totalNetoGravado;
-								totalFacturaBPositivosIva += totalIva;
-
-							} else if (totalNetoGravado < 0) {
-								totalFacturaBNegativos += totalNetoGravado;
-								totalFacturaBNegativosIva += totalIva;
-
-							}
-							totalFacturaB += totalNetoGravado;
-							totalFacturaBIva += totalIva;
-
-							totalFacturaBFacturaZ_B += totalNetoGravado;
-							totalFacturaBFacturaZ_BIva += totalIva;
-
-						} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
-
-							totalFacturaZ += totalNetoGravado;
-							totalFacturaZIva += totalIva;
-
-							if (totalNetoGravado > 0) {
-								totalFacturaZPositivos += totalNetoGravado;
-								totalFacturaZPositivosIva += totalIva;
-
-							} else if (totalNetoGravado < 0) {
-								totalFacturaZNegativos += totalNetoGravado;
-								totalFacturaZNegativosIva += totalIva;
-
-							}
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_A += totalNetoGravado;
-								totalFacturaZ_A_Iva += totalIva;
-
 								if (totalNetoGravado > 0) {
-									totalFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaZ_A_PositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
-									totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+									totalFacturaAPositivos += totalNetoGravado;
+									totalFacturaAPositivosIva += totalIva;
 
 								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaZ_A_NegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
-									totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+									totalFacturaANegativos += totalNetoGravado;
+									totalFacturaANegativosIva += totalIva;
 
 								}
+								totalFacturaA += totalNetoGravado;
+								totalFacturaAIva += totalIva;
+
 								totalFacturaAFacturaZ_A += totalNetoGravado;
 								totalFacturaAFacturaZ_AIva += totalIva;
 
-							} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-								System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_A += totalNetoGravado;
-								totalFacturaZ_A_Iva += totalIva;
+							} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBMonotributistaPositivos += totalNetoGravado;
+										totalFacturaBMonotributistaPositivosIva += totalIva;
 
-								if (totalNetoGravado > 0) {
-									totalFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaZ_A_PositivosIva += totalIva;
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
 
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBMonotributistaNegativos += totalNetoGravado;
+										totalFacturaBMonotributistaNegativosIva += totalIva;
 
-									totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
-									totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaZ_A_NegativosIva += totalIva;
+									}
+									totalFacturaBMonotributista += totalNetoGravado;
+									totalFacturaBMonotributistaIva += totalIva;
 
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
 
-									totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
-									totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+									}
+									totalFacturaBExentosNoAlcanzados += totalNetoGravado;
+									totalFacturaBExentosNoAlcanzadosIva += totalIva;
+
+								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+										|| codigoIva.equalsIgnoreCase("C.Fin")) {
+									System.out.println("Factura " + letra + " - Consumidor Final: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
+										totalFacturaBConsumidorFinalPositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
+										totalFacturaBConsumidorFinalNegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+									}
+									totalFacturaBConsumidorFinal += totalNetoGravado;
+									totalFacturaBConsumidorFinalIva += totalIva;
 
 								}
-								totalFacturaAFacturaZ_A += totalNetoGravado;
-								totalFacturaAFacturaZ_AIva += totalIva;
-
-							} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-									|| codigoIva.equalsIgnoreCase("C.Fin")) {
-								System.out.println("Factura " + letra + " - Consumidor Final: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_B += totalNetoGravado;
-								totalFacturaZ_B_Iva += totalIva;
-
 								if (totalNetoGravado > 0) {
-									totalFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
-									totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+									totalFacturaBPositivos += totalNetoGravado;
+									totalFacturaBPositivosIva += totalIva;
 
 								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
-									totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+									totalFacturaBNegativos += totalNetoGravado;
+									totalFacturaBNegativosIva += totalIva;
 
 								}
+								totalFacturaB += totalNetoGravado;
+								totalFacturaBIva += totalIva;
+
 								totalFacturaBFacturaZ_B += totalNetoGravado;
 								totalFacturaBFacturaZ_BIva += totalIva;
+
+							} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
+
+								totalFacturaZ += totalNetoGravado;
+								totalFacturaZIva += totalIva;
+
+								if (totalNetoGravado > 0) {
+									totalFacturaZPositivos += totalNetoGravado;
+									totalFacturaZPositivosIva += totalIva;
+
+								} else if (totalNetoGravado < 0) {
+									totalFacturaZNegativos += totalNetoGravado;
+									totalFacturaZNegativosIva += totalIva;
+
+								}
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_A += totalNetoGravado;
+									totalFacturaZ_A_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
+										totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+										totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
+									}
+									totalFacturaAFacturaZ_A += totalNetoGravado;
+									totalFacturaAFacturaZ_AIva += totalIva;
+
+								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_A += totalNetoGravado;
+									totalFacturaZ_A_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+
+									}
+									totalFacturaAFacturaZ_A += totalNetoGravado;
+									totalFacturaAFacturaZ_AIva += totalIva;
+
+								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+										|| codigoIva.equalsIgnoreCase("C.Fin")) {
+									System.out.println("Factura " + letra + " - Consumidor Final: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_B += totalNetoGravado;
+									totalFacturaZ_B_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
+										totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
+									}
+									totalFacturaBFacturaZ_B += totalNetoGravado;
+									totalFacturaBFacturaZ_BIva += totalIva;
+
+								} else {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_B += totalNetoGravado;
+									totalFacturaZ_B_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
+
+									}
+									totalFacturaBFacturaZ_B += totalNetoGravado;
+									totalFacturaBFacturaZ_BIva += totalIva;
+
+								}
 
 							} else {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_B += totalNetoGravado;
-								totalFacturaZ_B_Iva += totalIva;
-
-								if (totalNetoGravado > 0) {
-									totalFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
-
-								}
-								totalFacturaBFacturaZ_B += totalNetoGravado;
-								totalFacturaBFacturaZ_BIva += totalIva;
-
+								System.out.println("Factura " + letra + " - No clasificada: "
+										+ formattedTotalNetoGravado.replace(".", ","));
+								requiereRevision = true;
 							}
+							if (requiereRevision) {
+								System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
+										+ tipoDocumento + " - " + numeroCliente + "\n");
+							}
+						}
 
-						} else {
-							System.out.println("Factura " + letra + " - No clasificada: "
-									+ formattedTotalNetoGravado.replace(".", ","));
-							requiereRevision = true;
-						}
-						if (requiereRevision) {
-							System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
-									+ tipoDocumento + " - " + numeroCliente);
-						}
 					}
 
 				}
@@ -1019,6 +1045,13 @@ public class Main {
 					+ formattedtotalFacturaZAB_ABIva);
 
 			System.out.println("Factura Procesada");
+
+			if (existenRepetidos) {
+				System.out.println("Existen facturas repetidas.");
+			} else {
+				System.out.println("No se encontraron facturas repetidas.");
+			}
+
 			Scanner lector = new Scanner(System.in);
 			String n = lector.nextLine();
 			lector.close();
@@ -1041,6 +1074,9 @@ public class Main {
 			Iterator<Row> rowIterator = sheet.iterator();
 			rowIterator.next(); // Skip first header row
 			rowIterator.next(); // Skip second header row
+
+			Set<String> letrasEncontradas = new HashSet<>();
+			boolean existenRepetidos = false;
 
 			Map<String, List<Row>> puntoDeVentaMap = new HashMap<>();
 
@@ -1180,381 +1216,408 @@ public class Main {
 
 					boolean requiereRevision = false;
 
-					if (totalNetoGravadoCell != null) {
+					if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+						String letra = letraCell.getStringCellValue();
 
-						try {
-							if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
-								totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
-							} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
-								totalNetoGravado = Double
-										.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
-							} else {
-								System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
-								continue;
-							}
-							if (totalIvaCell.getCellType() == CellType.NUMERIC) {
-								totalIva = totalIvaCell.getNumericCellValue();
-							} else if (totalIvaCell.getCellType() == CellType.STRING) {
-								totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
-							} else {
-								System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
-								continue;
-							}
-						} catch (NumberFormatException e) {
-							System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
-							continue;
+						// Validar si la letra ya ha sido procesada
+						if (letrasEncontradas.contains(letra)) {
+							System.out.println("Letra repetida encontrada: " + letra);
+							// Marca el registro para revisión o toma otra acción
+							requiereRevision = true;
+							existenRepetidos = true;
+						} else {
+							// Agregar la letra al conjunto para rastrear las repetidas
+							letrasEncontradas.add(letra);
 						}
 
-						String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
-						String formattedTotalIva = String.format("%.2f", totalIva);
+						// Procesamiento de los registros según tu lógica original
+						// Aquí va el resto de tu código de procesamiento
+						// ...
 
-						if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
-							String letra = letraCell.getStringCellValue();
-							String numeroCliente = numeroClienteCell != null
-									&& numeroClienteCell.getCellType() == CellType.STRING
-											? numeroClienteCell.getStringCellValue()
-											: "";
-							String razonSocial = razonSocialCell != null
-									&& razonSocialCell.getCellType() == CellType.STRING
-											? razonSocialCell.getStringCellValue()
-											: "";
-							String tipoDocumento = tipoDocumentoCell != null
-									&& tipoDocumentoCell.getCellType() == CellType.STRING
-											? tipoDocumentoCell.getStringCellValue()
-											: "";
-							String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
-									? codigoIvaCell.getStringCellValue()
-									: "";
-							String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
-									? exentoCell.getStringCellValue()
-									: "";
+						if (totalNetoGravadoCell != null) {
 
-							if (totalNetoGravado < 0) {
-								System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
-										+ " - IVA: " + formattedTotalIva.replace(".", ","));
-							} else {
-								System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
-										+ " - IVA: " + formattedTotalIva.replace(".", ","));
+							try {
+								if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
+									totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
+								} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
+									totalNetoGravado = Double
+											.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
+								} else {
+									System.out
+											.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
+									continue;
+								}
+								if (totalIvaCell.getCellType() == CellType.NUMERIC) {
+									totalIva = totalIvaCell.getNumericCellValue();
+								} else if (totalIvaCell.getCellType() == CellType.STRING) {
+									totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
+								} else {
+									System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
+									continue;
+								}
+							} catch (NumberFormatException e) {
+								System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
+								continue;
 							}
 
-							// Aquí continúa la lógica de procesamiento...
-							if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAMonotributistaPositivos += totalNetoGravado;
-										totalFacturaAMonotributistaPositivosIva += totalIva;
+							String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
+							String formattedTotalIva = String.format("%.2f", totalIva);
 
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+							if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+								letra = letraCell.getStringCellValue();
+								String numeroCliente = numeroClienteCell != null
+										&& numeroClienteCell.getCellType() == CellType.STRING
+												? numeroClienteCell.getStringCellValue()
+												: "";
+								String razonSocial = razonSocialCell != null
+										&& razonSocialCell.getCellType() == CellType.STRING
+												? razonSocialCell.getStringCellValue()
+												: "";
+								String tipoDocumento = tipoDocumentoCell != null
+										&& tipoDocumentoCell.getCellType() == CellType.STRING
+												? tipoDocumentoCell.getStringCellValue()
+												: "";
+								String codigoIva = codigoIvaCell != null
+										&& codigoIvaCell.getCellType() == CellType.STRING
+												? codigoIvaCell.getStringCellValue()
+												: "";
+								String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
+										? exentoCell.getStringCellValue()
+										: "";
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAMonotributistaNegativos += totalNetoGravado;
-										totalFacturaAMonotributistaNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAMonotributista += totalNetoGravado;
-									totalFacturaAMonotributistaIva += totalIva;
-
-								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
-										totalFacturaAResponsableInscriptoPositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
-										totalFacturaAResponsableInscriptoNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAResponsableInscripto += totalNetoGravado;
-									totalFacturaAResponsableInscriptoIva += totalIva;
-
-								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
-										totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
-										totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosIva += totalIva;
-
+								if (totalNetoGravado < 0) {
+									System.out
+											.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
+													+ " - IVA: " + formattedTotalIva.replace(".", ","));
+								} else {
+									System.out
+											.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
+													+ " - IVA: " + formattedTotalIva.replace(".", ","));
 								}
-								if (totalNetoGravado > 0) {
-									totalFacturaAPositivos += totalNetoGravado;
-									totalFacturaAPositivosIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaANegativos += totalNetoGravado;
-									totalFacturaANegativosIva += totalIva;
+								// Aquí continúa la lógica de procesamiento...
+								if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAMonotributistaPositivos += totalNetoGravado;
+											totalFacturaAMonotributistaPositivosIva += totalIva;
 
-								}
-								totalFacturaA += totalNetoGravado;
-								totalFacturaAIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								totalFacturaAFacturaZ_A += totalNetoGravado;
-								totalFacturaAFacturaZ_AIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAMonotributistaNegativos += totalNetoGravado;
+											totalFacturaAMonotributistaNegativosIva += totalIva;
 
-							} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBMonotributistaPositivos += totalNetoGravado;
-										totalFacturaBMonotributistaPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+										}
+										totalFacturaAMonotributista += totalNetoGravado;
+										totalFacturaAMonotributistaIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBMonotributistaNegativos += totalNetoGravado;
-										totalFacturaBMonotributistaNegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+										System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
+											totalFacturaAResponsableInscriptoPositivosIva += totalIva;
 
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-									}
-									totalFacturaBMonotributista += totalNetoGravado;
-									totalFacturaBMonotributistaIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
+											totalFacturaAResponsableInscriptoNegativosIva += totalIva;
 
-								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
-										totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+										}
+										totalFacturaAResponsableInscripto += totalNetoGravado;
+										totalFacturaAResponsableInscriptoIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
-										totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
+											totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
 
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-									}
-									totalFacturaBExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
+											totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
 
-								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-										|| codigoIva.equalsIgnoreCase("C.Fin")) {
-									System.out.println("Factura " + letra + " - Consumidor Final: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
-										totalFacturaBConsumidorFinalPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
-										totalFacturaBConsumidorFinalNegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										}
+										totalFacturaAExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosIva += totalIva;
 
 									}
-									totalFacturaBConsumidorFinal += totalNetoGravado;
-									totalFacturaBConsumidorFinalIva += totalIva;
-
-								}
-								if (totalNetoGravado > 0) {
-									totalFacturaBPositivos += totalNetoGravado;
-									totalFacturaBPositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBNegativos += totalNetoGravado;
-									totalFacturaBNegativosIva += totalIva;
-
-								}
-								totalFacturaB += totalNetoGravado;
-								totalFacturaBIva += totalIva;
-
-								totalFacturaBFacturaZ_B += totalNetoGravado;
-								totalFacturaBFacturaZ_BIva += totalIva;
-
-							} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
-
-								totalFacturaZ += totalNetoGravado;
-								totalFacturaZIva += totalIva;
-
-								if (totalNetoGravado > 0) {
-									totalFacturaZPositivos += totalNetoGravado;
-									totalFacturaZPositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZNegativos += totalNetoGravado;
-									totalFacturaZNegativosIva += totalIva;
-
-								}
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_A += totalNetoGravado;
-									totalFacturaZ_A_Iva += totalIva;
-
 									if (totalNetoGravado > 0) {
-										totalFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaZ_A_PositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-										totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
-										totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+										totalFacturaAPositivos += totalNetoGravado;
+										totalFacturaAPositivosIva += totalIva;
 
 									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaZ_A_NegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-										totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
-										totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+										totalFacturaANegativos += totalNetoGravado;
+										totalFacturaANegativosIva += totalIva;
 
 									}
+									totalFacturaA += totalNetoGravado;
+									totalFacturaAIva += totalIva;
+
 									totalFacturaAFacturaZ_A += totalNetoGravado;
 									totalFacturaAFacturaZ_AIva += totalIva;
 
-								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_A += totalNetoGravado;
-									totalFacturaZ_A_Iva += totalIva;
+								} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBMonotributistaPositivos += totalNetoGravado;
+											totalFacturaBMonotributistaPositivosIva += totalIva;
 
-									if (totalNetoGravado > 0) {
-										totalFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaZ_A_PositivosIva += totalIva;
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
 
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBMonotributistaNegativos += totalNetoGravado;
+											totalFacturaBMonotributistaNegativosIva += totalIva;
 
-										totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
-										totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaZ_A_NegativosIva += totalIva;
+										}
+										totalFacturaBMonotributista += totalNetoGravado;
+										totalFacturaBMonotributistaIva += totalIva;
 
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
+											totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
 
-										totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
-										totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
+											totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										}
+										totalFacturaBExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosIva += totalIva;
+
+									} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+											|| codigoIva.equalsIgnoreCase("C.Fin")) {
+										System.out.println("Factura " + letra + " - Consumidor Final: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
+											totalFacturaBConsumidorFinalPositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
+											totalFacturaBConsumidorFinalNegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										}
+										totalFacturaBConsumidorFinal += totalNetoGravado;
+										totalFacturaBConsumidorFinalIva += totalIva;
 
 									}
-									totalFacturaAFacturaZ_A += totalNetoGravado;
-									totalFacturaAFacturaZ_AIva += totalIva;
-
-								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-										|| codigoIva.equalsIgnoreCase("C.Fin")) {
-									System.out.println("Factura " + letra + " - Consumidor Final: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_B += totalNetoGravado;
-									totalFacturaZ_B_Iva += totalIva;
-
 									if (totalNetoGravado > 0) {
-										totalFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
-										totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+										totalFacturaBPositivos += totalNetoGravado;
+										totalFacturaBPositivosIva += totalIva;
 
 									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
-										totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+										totalFacturaBNegativos += totalNetoGravado;
+										totalFacturaBNegativosIva += totalIva;
 
 									}
+									totalFacturaB += totalNetoGravado;
+									totalFacturaBIva += totalIva;
+
 									totalFacturaBFacturaZ_B += totalNetoGravado;
 									totalFacturaBFacturaZ_BIva += totalIva;
+
+								} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
+
+									totalFacturaZ += totalNetoGravado;
+									totalFacturaZIva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZPositivos += totalNetoGravado;
+										totalFacturaZPositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZNegativos += totalNetoGravado;
+										totalFacturaZNegativosIva += totalIva;
+
+									}
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_A += totalNetoGravado;
+										totalFacturaZ_A_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
+											totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+											totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
+										}
+										totalFacturaAFacturaZ_A += totalNetoGravado;
+										totalFacturaAFacturaZ_AIva += totalIva;
+
+									} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+										System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_A += totalNetoGravado;
+										totalFacturaZ_A_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+											totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+											totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+
+										}
+										totalFacturaAFacturaZ_A += totalNetoGravado;
+										totalFacturaAFacturaZ_AIva += totalIva;
+
+									} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+											|| codigoIva.equalsIgnoreCase("C.Fin")) {
+										System.out.println("Factura " + letra + " - Consumidor Final: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_B += totalNetoGravado;
+										totalFacturaZ_B_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
+											totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+											totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
+										}
+										totalFacturaBFacturaZ_B += totalNetoGravado;
+										totalFacturaBFacturaZ_BIva += totalIva;
+
+									} else {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_B += totalNetoGravado;
+										totalFacturaZ_B_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
+											totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+											totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
+
+										}
+										totalFacturaBFacturaZ_B += totalNetoGravado;
+										totalFacturaBFacturaZ_BIva += totalIva;
+
+									}
 
 								} else {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_B += totalNetoGravado;
-									totalFacturaZ_B_Iva += totalIva;
-
-									if (totalNetoGravado > 0) {
-										totalFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
-										totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
-										totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
-
-									}
-									totalFacturaBFacturaZ_B += totalNetoGravado;
-									totalFacturaBFacturaZ_BIva += totalIva;
-
+									System.out.println("Factura " + letra + " - No clasificada: "
+											+ formattedTotalNetoGravado.replace(".", ","));
+									requiereRevision = true;
 								}
+								if (requiereRevision) {
+									System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
+											+ tipoDocumento + " - " + numeroCliente);
+								}
+							}
 
-							} else {
-								System.out.println("Factura " + letra + " - No clasificada: "
-										+ formattedTotalNetoGravado.replace(".", ","));
-								requiereRevision = true;
-							}
-							if (requiereRevision) {
-								System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
-										+ tipoDocumento + " - " + numeroCliente);
-							}
 						}
 
 					}
@@ -2021,6 +2084,12 @@ public class Main {
 			}
 			System.out.println("Factura Procesada");
 
+			if (existenRepetidos) {
+				System.out.println("Existen facturas repetidas.");
+			} else {
+				System.out.println("No se encontraron facturas repetidas.");
+			}
+
 			Scanner lector = new Scanner(System.in);
 			String n = lector.nextLine();
 			lector.close();
@@ -2152,6 +2221,9 @@ public class Main {
 			rowIterator.next(); // Skip first header row
 			rowIterator.next(); // Skip second header row
 
+			Set<String> letrasEncontradas = new HashSet<>();
+			boolean existenRepetidos = false;
+
 			while (rowIterator.hasNext()) {
 				Row row = rowIterator.next();
 				Cell totalNetoGravadoCell = row.getCell(7);
@@ -2165,381 +2237,402 @@ public class Main {
 
 				boolean requiereRevision = false;
 
-				if (totalNetoGravadoCell != null) {
+				if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+					String letra = letraCell.getStringCellValue();
 
-					try {
-
-						if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
-							totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
-						} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
-							totalNetoGravado = Double
-									.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
-						} else {
-							System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
-							continue;
-						}
-						if (totalIvaCell.getCellType() == CellType.NUMERIC) {
-							totalIva = totalIvaCell.getNumericCellValue();
-						} else if (totalIvaCell.getCellType() == CellType.STRING) {
-							totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
-						} else {
-							System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
-							continue;
-						}
-
-					} catch (NumberFormatException e) {
-						System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
-						continue;
+					// Validar si la letra ya ha sido procesada
+					if (letrasEncontradas.contains(letra)) {
+						System.out.println("Letra repetida encontrada: " + letra);
+						// Marca el registro para revisión o toma otra acción
+						requiereRevision = true;
+						existenRepetidos = true;
+					} else {
+						// Agregar la letra al conjunto para rastrear las repetidas
+						letrasEncontradas.add(letra);
 					}
 
-					String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
-					String formattedTotalIva = String.format("%.2f", totalIva);
+					// Procesamiento de los registros según tu lógica original
+					// Aquí va el resto de tu código de procesamiento
+					// ...
 
-					if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
-						String letra = letraCell.getStringCellValue();
-						String numeroCliente = numeroClienteCell != null
-								&& numeroClienteCell.getCellType() == CellType.STRING
-										? numeroClienteCell.getStringCellValue()
-										: "";
-						String razonSocial = razonSocialCell != null && razonSocialCell.getCellType() == CellType.STRING
-								? razonSocialCell.getStringCellValue()
-								: "";
-						String tipoDocumento = tipoDocumentoCell != null
-								&& tipoDocumentoCell.getCellType() == CellType.STRING
-										? tipoDocumentoCell.getStringCellValue()
-										: "";
-						String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
-								? codigoIvaCell.getStringCellValue()
-								: "";
-						String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
-								? exentoCell.getStringCellValue()
-								: "";
+					if (totalNetoGravadoCell != null) {
 
-						if (totalNetoGravado < 0) {
-							System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
-									+ " - IVA: " + formattedTotalIva.replace(".", ","));
-						} else {
-							System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
-									+ " - IVA: " + formattedTotalIva.replace(".", ","));
+						try {
+
+							if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
+								totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
+							} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
+								totalNetoGravado = Double
+										.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
+							} else {
+								System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
+								continue;
+							}
+							if (totalIvaCell.getCellType() == CellType.NUMERIC) {
+								totalIva = totalIvaCell.getNumericCellValue();
+							} else if (totalIvaCell.getCellType() == CellType.STRING) {
+								totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
+							} else {
+								System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
+								continue;
+							}
+
+						} catch (NumberFormatException e) {
+							System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
+							continue;
 						}
 
-						if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAMonotributistaPositivos += totalNetoGravado;
-									totalFacturaAMonotributistaPositivosIva += totalIva;
+						String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
+						String formattedTotalIva = String.format("%.2f", totalIva);
 
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+						if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+							letra = letraCell.getStringCellValue();
+							String numeroCliente = numeroClienteCell != null
+									&& numeroClienteCell.getCellType() == CellType.STRING
+											? numeroClienteCell.getStringCellValue()
+											: "";
+							String razonSocial = razonSocialCell != null
+									&& razonSocialCell.getCellType() == CellType.STRING
+											? razonSocialCell.getStringCellValue()
+											: "";
+							String tipoDocumento = tipoDocumentoCell != null
+									&& tipoDocumentoCell.getCellType() == CellType.STRING
+											? tipoDocumentoCell.getStringCellValue()
+											: "";
+							String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
+									? codigoIvaCell.getStringCellValue()
+									: "";
+							String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
+									? exentoCell.getStringCellValue()
+									: "";
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAMonotributistaNegativos += totalNetoGravado;
-									totalFacturaAMonotributistaNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAMonotributista += totalNetoGravado;
-								totalFacturaAMonotributistaIva += totalIva;
-
-							} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-								System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
-									totalFacturaAResponsableInscriptoPositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
-									totalFacturaAResponsableInscriptoNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAResponsableInscripto += totalNetoGravado;
-								totalFacturaAResponsableInscriptoIva += totalIva;
-
-							} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-								}
-								totalFacturaAExentosNoAlcanzados += totalNetoGravado;
-								totalFacturaAExentosNoAlcanzadosIva += totalIva;
-
+							if (totalNetoGravado < 0) {
+								System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
+										+ " - IVA: " + formattedTotalIva.replace(".", ","));
+							} else {
+								System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
+										+ " - IVA: " + formattedTotalIva.replace(".", ","));
 							}
-							if (totalNetoGravado > 0) {
-								totalFacturaAPositivos += totalNetoGravado;
-								totalFacturaAPositivosIva += totalIva;
 
-							} else if (totalNetoGravado < 0) {
-								totalFacturaANegativos += totalNetoGravado;
-								totalFacturaANegativosIva += totalIva;
+							if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAMonotributistaPositivos += totalNetoGravado;
+										totalFacturaAMonotributistaPositivosIva += totalIva;
 
-							}
-							totalFacturaA += totalNetoGravado;
-							totalFacturaAIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-							totalFacturaAFacturaZ_A += totalNetoGravado;
-							totalFacturaAFacturaZ_AIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAMonotributistaNegativos += totalNetoGravado;
+										totalFacturaAMonotributistaNegativosIva += totalIva;
 
-						} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBMonotributistaPositivos += totalNetoGravado;
-									totalFacturaBMonotributistaPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+									}
+									totalFacturaAMonotributista += totalNetoGravado;
+									totalFacturaAMonotributistaIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBMonotributistaNegativos += totalNetoGravado;
-									totalFacturaBMonotributistaNegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
+										totalFacturaAResponsableInscriptoPositivosIva += totalIva;
 
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								}
-								totalFacturaBMonotributista += totalNetoGravado;
-								totalFacturaBMonotributistaIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
+										totalFacturaAResponsableInscriptoNegativosIva += totalIva;
 
-							} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+									}
+									totalFacturaAResponsableInscripto += totalNetoGravado;
+									totalFacturaAResponsableInscriptoIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
 
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								}
-								totalFacturaBExentosNoAlcanzados += totalNetoGravado;
-								totalFacturaBExentosNoAlcanzadosIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
 
-							} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-									|| codigoIva.equalsIgnoreCase("C.Fin")) {
-								System.out.println("Factura " + letra + " - Consumidor Final: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								if (totalNetoGravado > 0) {
-									totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
-									totalFacturaBConsumidorFinalPositivosIva += totalIva;
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
-									totalFacturaBConsumidorFinalNegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+									}
+									totalFacturaAExentosNoAlcanzados += totalNetoGravado;
+									totalFacturaAExentosNoAlcanzadosIva += totalIva;
 
 								}
-								totalFacturaBConsumidorFinal += totalNetoGravado;
-								totalFacturaBConsumidorFinalIva += totalIva;
-
-							}
-							if (totalNetoGravado > 0) {
-								totalFacturaBPositivos += totalNetoGravado;
-								totalFacturaBPositivosIva += totalIva;
-
-							} else if (totalNetoGravado < 0) {
-								totalFacturaBNegativos += totalNetoGravado;
-								totalFacturaBNegativosIva += totalIva;
-
-							}
-							totalFacturaB += totalNetoGravado;
-							totalFacturaBIva += totalIva;
-
-							totalFacturaBFacturaZ_B += totalNetoGravado;
-							totalFacturaBFacturaZ_BIva += totalIva;
-
-						} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
-
-							totalFacturaZ += totalNetoGravado;
-							totalFacturaZIva += totalIva;
-
-							if (totalNetoGravado > 0) {
-								totalFacturaZPositivos += totalNetoGravado;
-								totalFacturaZPositivosIva += totalIva;
-
-							} else if (totalNetoGravado < 0) {
-								totalFacturaZNegativos += totalNetoGravado;
-								totalFacturaZNegativosIva += totalIva;
-
-							}
-							if (codigoIva.equalsIgnoreCase("R.Mon")) {
-								System.out.println("Factura " + letra + " - Monotributista: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_A += totalNetoGravado;
-								totalFacturaZ_A_Iva += totalIva;
-
 								if (totalNetoGravado > 0) {
-									totalFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaZ_A_PositivosIva += totalIva;
-
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
-									totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+									totalFacturaAPositivos += totalNetoGravado;
+									totalFacturaAPositivosIva += totalIva;
 
 								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaZ_A_NegativosIva += totalIva;
-
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
-									totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+									totalFacturaANegativos += totalNetoGravado;
+									totalFacturaANegativosIva += totalIva;
 
 								}
+								totalFacturaA += totalNetoGravado;
+								totalFacturaAIva += totalIva;
+
 								totalFacturaAFacturaZ_A += totalNetoGravado;
 								totalFacturaAFacturaZ_AIva += totalIva;
 
-							} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-								System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_A += totalNetoGravado;
-								totalFacturaZ_A_Iva += totalIva;
+							} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBMonotributistaPositivos += totalNetoGravado;
+										totalFacturaBMonotributistaPositivosIva += totalIva;
 
-								if (totalNetoGravado > 0) {
-									totalFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaZ_A_PositivosIva += totalIva;
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
 
-									totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-									totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBMonotributistaNegativos += totalNetoGravado;
+										totalFacturaBMonotributistaNegativosIva += totalIva;
 
-									totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
-									totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaZ_A_NegativosIva += totalIva;
+									}
+									totalFacturaBMonotributista += totalNetoGravado;
+									totalFacturaBMonotributistaIva += totalIva;
 
-									totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-									totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
 
-									totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
-									totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+									}
+									totalFacturaBExentosNoAlcanzados += totalNetoGravado;
+									totalFacturaBExentosNoAlcanzadosIva += totalIva;
+
+								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+										|| codigoIva.equalsIgnoreCase("C.Fin")) {
+									System.out.println("Factura " + letra + " - Consumidor Final: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									if (totalNetoGravado > 0) {
+										totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
+										totalFacturaBConsumidorFinalPositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
+										totalFacturaBConsumidorFinalNegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+									}
+									totalFacturaBConsumidorFinal += totalNetoGravado;
+									totalFacturaBConsumidorFinalIva += totalIva;
 
 								}
-								totalFacturaAFacturaZ_A += totalNetoGravado;
-								totalFacturaAFacturaZ_AIva += totalIva;
-
-							} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-									|| codigoIva.equalsIgnoreCase("C.Fin")) {
-								System.out.println("Factura " + letra + " - Consumidor Final: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_B += totalNetoGravado;
-								totalFacturaZ_B_Iva += totalIva;
-
 								if (totalNetoGravado > 0) {
-									totalFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
-									totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+									totalFacturaBPositivos += totalNetoGravado;
+									totalFacturaBPositivosIva += totalIva;
 
 								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
-									totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+									totalFacturaBNegativos += totalNetoGravado;
+									totalFacturaBNegativosIva += totalIva;
 
 								}
+								totalFacturaB += totalNetoGravado;
+								totalFacturaBIva += totalIva;
+
 								totalFacturaBFacturaZ_B += totalNetoGravado;
 								totalFacturaBFacturaZ_BIva += totalIva;
+
+							} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
+
+								totalFacturaZ += totalNetoGravado;
+								totalFacturaZIva += totalIva;
+
+								if (totalNetoGravado > 0) {
+									totalFacturaZPositivos += totalNetoGravado;
+									totalFacturaZPositivosIva += totalIva;
+
+								} else if (totalNetoGravado < 0) {
+									totalFacturaZNegativos += totalNetoGravado;
+									totalFacturaZNegativosIva += totalIva;
+
+								}
+								if (codigoIva.equalsIgnoreCase("R.Mon")) {
+									System.out.println("Factura " + letra + " - Monotributista: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_A += totalNetoGravado;
+									totalFacturaZ_A_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
+										totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+										totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
+									}
+									totalFacturaAFacturaZ_A += totalNetoGravado;
+									totalFacturaAFacturaZ_AIva += totalIva;
+
+								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_A += totalNetoGravado;
+									totalFacturaZ_A_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+										totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+										totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+										totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+
+									}
+									totalFacturaAFacturaZ_A += totalNetoGravado;
+									totalFacturaAFacturaZ_AIva += totalIva;
+
+								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+										|| codigoIva.equalsIgnoreCase("C.Fin")) {
+									System.out.println("Factura " + letra + " - Consumidor Final: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_B += totalNetoGravado;
+									totalFacturaZ_B_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
+										totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
+									}
+									totalFacturaBFacturaZ_B += totalNetoGravado;
+									totalFacturaBFacturaZ_BIva += totalIva;
+
+								} else {
+									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+											+ formattedTotalIva.replace(".", ",") + "\n");
+									totalFacturaZ_B += totalNetoGravado;
+									totalFacturaZ_B_Iva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
+
+									}
+									totalFacturaBFacturaZ_B += totalNetoGravado;
+									totalFacturaBFacturaZ_BIva += totalIva;
+
+								}
 
 							} else {
-								System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-										+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-										+ formattedTotalIva.replace(".", ",") + "\n");
-								totalFacturaZ_B += totalNetoGravado;
-								totalFacturaZ_B_Iva += totalIva;
-
-								if (totalNetoGravado > 0) {
-									totalFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-									totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-									totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-									totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
-
-								}
-								totalFacturaBFacturaZ_B += totalNetoGravado;
-								totalFacturaBFacturaZ_BIva += totalIva;
-
+								System.out.println("Factura " + letra + " - No clasificada: "
+										+ formattedTotalNetoGravado.replace(".", ","));
+								requiereRevision = true;
 							}
+							if (requiereRevision) {
+								System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
+										+ tipoDocumento + " - " + numeroCliente);
+							}
+						}
 
-						} else {
-							System.out.println("Factura " + letra + " - No clasificada: "
-									+ formattedTotalNetoGravado.replace(".", ","));
-							requiereRevision = true;
-						}
-						if (requiereRevision) {
-							System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
-									+ tipoDocumento + " - " + numeroCliente);
-						}
 					}
 
 				}
@@ -3156,6 +3249,13 @@ public class Main {
 			}
 
 			System.out.println("Factura Procesada");
+
+			if (existenRepetidos) {
+				System.out.println("Existen facturas repetidas.");
+			} else {
+				System.out.println("No se encontraron facturas repetidas.");
+			}
+
 			Scanner lector = new Scanner(System.in);
 			String n = lector.nextLine();
 			lector.close();
@@ -3178,6 +3278,9 @@ public class Main {
 			Iterator<Row> rowIterator = sheet.iterator();
 			rowIterator.next(); // Skip first header row
 			rowIterator.next(); // Skip second header row
+
+			Set<String> letrasEncontradas = new HashSet<>();
+			boolean existenRepetidos = false;
 
 			Map<String, List<Row>> puntoDeVentaMap = new HashMap<>();
 
@@ -3317,381 +3420,408 @@ public class Main {
 
 					boolean requiereRevision = false;
 
-					if (totalNetoGravadoCell != null) {
+					if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+						String letra = letraCell.getStringCellValue();
 
-						try {
-							if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
-								totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
-							} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
-								totalNetoGravado = Double
-										.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
-							} else {
-								System.out.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
-								continue;
-							}
-							if (totalIvaCell.getCellType() == CellType.NUMERIC) {
-								totalIva = totalIvaCell.getNumericCellValue();
-							} else if (totalIvaCell.getCellType() == CellType.STRING) {
-								totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
-							} else {
-								System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
-								continue;
-							}
-						} catch (NumberFormatException e) {
-							System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
-							continue;
+						// Validar si la letra ya ha sido procesada
+						if (letrasEncontradas.contains(letra)) {
+							System.out.println("Letra repetida encontrada: " + letra);
+							// Marca el registro para revisión o toma otra acción
+							requiereRevision = true;
+							existenRepetidos = true;
+						} else {
+							// Agregar la letra al conjunto para rastrear las repetidas
+							letrasEncontradas.add(letra);
 						}
 
-						String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
-						String formattedTotalIva = String.format("%.2f", totalIva);
+						// Procesamiento de los registros según tu lógica original
+						// Aquí va el resto de tu código de procesamiento
+						// ...
 
-						if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
-							String letra = letraCell.getStringCellValue();
-							String numeroCliente = numeroClienteCell != null
-									&& numeroClienteCell.getCellType() == CellType.STRING
-											? numeroClienteCell.getStringCellValue()
-											: "";
-							String razonSocial = razonSocialCell != null
-									&& razonSocialCell.getCellType() == CellType.STRING
-											? razonSocialCell.getStringCellValue()
-											: "";
-							String tipoDocumento = tipoDocumentoCell != null
-									&& tipoDocumentoCell.getCellType() == CellType.STRING
-											? tipoDocumentoCell.getStringCellValue()
-											: "";
-							String codigoIva = codigoIvaCell != null && codigoIvaCell.getCellType() == CellType.STRING
-									? codigoIvaCell.getStringCellValue()
-									: "";
-							String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
-									? exentoCell.getStringCellValue()
-									: "";
+						if (totalNetoGravadoCell != null) {
 
-							if (totalNetoGravado < 0) {
-								System.out.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
-										+ " - IVA: " + formattedTotalIva.replace(".", ","));
-							} else {
-								System.out.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
-										+ " - IVA: " + formattedTotalIva.replace(".", ","));
+							try {
+								if (totalNetoGravadoCell.getCellType() == CellType.NUMERIC) {
+									totalNetoGravado = totalNetoGravadoCell.getNumericCellValue();
+								} else if (totalNetoGravadoCell.getCellType() == CellType.STRING) {
+									totalNetoGravado = Double
+											.parseDouble(totalNetoGravadoCell.getStringCellValue().replace(",", ""));
+								} else {
+									System.out
+											.println("La celda no contiene un valor numérico: " + totalNetoGravadoCell);
+									continue;
+								}
+								if (totalIvaCell.getCellType() == CellType.NUMERIC) {
+									totalIva = totalIvaCell.getNumericCellValue();
+								} else if (totalIvaCell.getCellType() == CellType.STRING) {
+									totalIva = Double.parseDouble(totalIvaCell.getStringCellValue().replace(",", ""));
+								} else {
+									System.out.println("La celda no contiene un valor numérico: " + totalIvaCell);
+									continue;
+								}
+							} catch (NumberFormatException e) {
+								System.out.println("Error al convertir el valor: " + totalNetoGravadoCell);
+								continue;
 							}
 
-							// Aquí continúa la lógica de procesamiento...
-							if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAMonotributistaPositivos += totalNetoGravado;
-										totalFacturaAMonotributistaPositivosIva += totalIva;
+							String formattedTotalNetoGravado = String.format("%.2f", totalNetoGravado);
+							String formattedTotalIva = String.format("%.2f", totalIva);
 
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+							if (letraCell != null && letraCell.getCellType() == CellType.STRING) {
+								letra = letraCell.getStringCellValue();
+								String numeroCliente = numeroClienteCell != null
+										&& numeroClienteCell.getCellType() == CellType.STRING
+												? numeroClienteCell.getStringCellValue()
+												: "";
+								String razonSocial = razonSocialCell != null
+										&& razonSocialCell.getCellType() == CellType.STRING
+												? razonSocialCell.getStringCellValue()
+												: "";
+								String tipoDocumento = tipoDocumentoCell != null
+										&& tipoDocumentoCell.getCellType() == CellType.STRING
+												? tipoDocumentoCell.getStringCellValue()
+												: "";
+								String codigoIva = codigoIvaCell != null
+										&& codigoIvaCell.getCellType() == CellType.STRING
+												? codigoIvaCell.getStringCellValue()
+												: "";
+								String exento = exentoCell != null && exentoCell.getCellType() == CellType.STRING
+										? exentoCell.getStringCellValue()
+										: "";
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAMonotributistaNegativos += totalNetoGravado;
-										totalFacturaAMonotributistaNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAMonotributista += totalNetoGravado;
-									totalFacturaAMonotributistaIva += totalIva;
-
-								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
-										totalFacturaAResponsableInscriptoPositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
-										totalFacturaAResponsableInscriptoNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAResponsableInscripto += totalNetoGravado;
-									totalFacturaAResponsableInscriptoIva += totalIva;
-
-								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
-										totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
-										totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-									}
-									totalFacturaAExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaAExentosNoAlcanzadosIva += totalIva;
-
+								if (totalNetoGravado < 0) {
+									System.out
+											.println(" Nota de Crédito: " + formattedTotalNetoGravado.replace(".", ",")
+													+ " - IVA: " + formattedTotalIva.replace(".", ","));
+								} else {
+									System.out
+											.println("Factura Positiva: " + formattedTotalNetoGravado.replace(".", ",")
+													+ " - IVA: " + formattedTotalIva.replace(".", ","));
 								}
-								if (totalNetoGravado > 0) {
-									totalFacturaAPositivos += totalNetoGravado;
-									totalFacturaAPositivosIva += totalIva;
 
-								} else if (totalNetoGravado < 0) {
-									totalFacturaANegativos += totalNetoGravado;
-									totalFacturaANegativosIva += totalIva;
+								// Aquí continúa la lógica de procesamiento...
+								if (letra.startsWith("Fc.A") || letra.startsWith("Nc.A")) {
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAMonotributistaPositivos += totalNetoGravado;
+											totalFacturaAMonotributistaPositivosIva += totalIva;
 
-								}
-								totalFacturaA += totalNetoGravado;
-								totalFacturaAIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-								totalFacturaAFacturaZ_A += totalNetoGravado;
-								totalFacturaAFacturaZ_AIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAMonotributistaNegativos += totalNetoGravado;
+											totalFacturaAMonotributistaNegativosIva += totalIva;
 
-							} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBMonotributistaPositivos += totalNetoGravado;
-										totalFacturaBMonotributistaPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+										}
+										totalFacturaAMonotributista += totalNetoGravado;
+										totalFacturaAMonotributistaIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBMonotributistaNegativos += totalNetoGravado;
-										totalFacturaBMonotributistaNegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+										System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAResponsableInscriptoPositivos += totalNetoGravado;
+											totalFacturaAResponsableInscriptoPositivosIva += totalIva;
 
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-									}
-									totalFacturaBMonotributista += totalNetoGravado;
-									totalFacturaBMonotributistaIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAResponsableInscriptoNegativos += totalNetoGravado;
+											totalFacturaAResponsableInscriptoNegativosIva += totalIva;
 
-								} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
-										totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+										}
+										totalFacturaAResponsableInscripto += totalNetoGravado;
+										totalFacturaAResponsableInscriptoIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
-										totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaAExentosNoAlcanzadosPositivos += totalNetoGravado;
+											totalFacturaAExentosNoAlcanzadosPositivosIva += totalIva;
 
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
 
-									}
-									totalFacturaBExentosNoAlcanzados += totalNetoGravado;
-									totalFacturaBExentosNoAlcanzadosIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaAExentosNoAlcanzadosNegativos += totalNetoGravado;
+											totalFacturaAExentosNoAlcanzadosNegativosIva += totalIva;
 
-								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-										|| codigoIva.equalsIgnoreCase("C.Fin")) {
-									System.out.println("Factura " + letra + " - Consumidor Final: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									if (totalNetoGravado > 0) {
-										totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
-										totalFacturaBConsumidorFinalPositivosIva += totalIva;
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
 
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
-										totalFacturaBConsumidorFinalNegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+										}
+										totalFacturaAExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaAExentosNoAlcanzadosIva += totalIva;
 
 									}
-									totalFacturaBConsumidorFinal += totalNetoGravado;
-									totalFacturaBConsumidorFinalIva += totalIva;
-
-								}
-								if (totalNetoGravado > 0) {
-									totalFacturaBPositivos += totalNetoGravado;
-									totalFacturaBPositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaBNegativos += totalNetoGravado;
-									totalFacturaBNegativosIva += totalIva;
-
-								}
-								totalFacturaB += totalNetoGravado;
-								totalFacturaBIva += totalIva;
-
-								totalFacturaBFacturaZ_B += totalNetoGravado;
-								totalFacturaBFacturaZ_BIva += totalIva;
-
-							} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
-
-								totalFacturaZ += totalNetoGravado;
-								totalFacturaZIva += totalIva;
-
-								if (totalNetoGravado > 0) {
-									totalFacturaZPositivos += totalNetoGravado;
-									totalFacturaZPositivosIva += totalIva;
-
-								} else if (totalNetoGravado < 0) {
-									totalFacturaZNegativos += totalNetoGravado;
-									totalFacturaZNegativosIva += totalIva;
-
-								}
-								if (codigoIva.equalsIgnoreCase("R.Mon")) {
-									System.out.println("Factura " + letra + " - Monotributista: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_A += totalNetoGravado;
-									totalFacturaZ_A_Iva += totalIva;
-
 									if (totalNetoGravado > 0) {
-										totalFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaZ_A_PositivosIva += totalIva;
-
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
-
-										totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
-										totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+										totalFacturaAPositivos += totalNetoGravado;
+										totalFacturaAPositivosIva += totalIva;
 
 									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaZ_A_NegativosIva += totalIva;
-
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
-
-										totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
-										totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+										totalFacturaANegativos += totalNetoGravado;
+										totalFacturaANegativosIva += totalIva;
 
 									}
+									totalFacturaA += totalNetoGravado;
+									totalFacturaAIva += totalIva;
+
 									totalFacturaAFacturaZ_A += totalNetoGravado;
 									totalFacturaAFacturaZ_AIva += totalIva;
 
-								} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
-									System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_A += totalNetoGravado;
-									totalFacturaZ_A_Iva += totalIva;
+								} else if (letra.startsWith("Fc.B") || letra.startsWith("Nc.B")) {
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBMonotributistaPositivos += totalNetoGravado;
+											totalFacturaBMonotributistaPositivosIva += totalIva;
 
-									if (totalNetoGravado > 0) {
-										totalFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaZ_A_PositivosIva += totalIva;
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
 
-										totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
-										totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBMonotributistaNegativos += totalNetoGravado;
+											totalFacturaBMonotributistaNegativosIva += totalIva;
 
-										totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
-										totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
 
-									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaZ_A_NegativosIva += totalIva;
+										}
+										totalFacturaBMonotributista += totalNetoGravado;
+										totalFacturaBMonotributistaIva += totalIva;
 
-										totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
-										totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+									} else if (codigoIva.equalsIgnoreCase("R.Exe") || exento.startsWith("0") != false) {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBExentosNoAlcanzadosPositivos += totalNetoGravado;
+											totalFacturaBExentosNoAlcanzadosPositivosIva += totalIva;
 
-										totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
-										totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBExentosNoAlcanzadosNegativos += totalNetoGravado;
+											totalFacturaBExentosNoAlcanzadosNegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										}
+										totalFacturaBExentosNoAlcanzados += totalNetoGravado;
+										totalFacturaBExentosNoAlcanzadosIva += totalIva;
+
+									} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+											|| codigoIva.equalsIgnoreCase("C.Fin")) {
+										System.out.println("Factura " + letra + " - Consumidor Final: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										if (totalNetoGravado > 0) {
+											totalFacturaBConsumidorFinalPositivos += totalNetoGravado;
+											totalFacturaBConsumidorFinalPositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaBConsumidorFinalNegativos += totalNetoGravado;
+											totalFacturaBConsumidorFinalNegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+										}
+										totalFacturaBConsumidorFinal += totalNetoGravado;
+										totalFacturaBConsumidorFinalIva += totalIva;
 
 									}
-									totalFacturaAFacturaZ_A += totalNetoGravado;
-									totalFacturaAFacturaZ_AIva += totalIva;
-
-								} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
-										|| codigoIva.equalsIgnoreCase("C.Fin")) {
-									System.out.println("Factura " + letra + " - Consumidor Final: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_B += totalNetoGravado;
-									totalFacturaZ_B_Iva += totalIva;
-
 									if (totalNetoGravado > 0) {
-										totalFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
-										totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+										totalFacturaBPositivos += totalNetoGravado;
+										totalFacturaBPositivosIva += totalIva;
 
 									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
-										totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+										totalFacturaBNegativos += totalNetoGravado;
+										totalFacturaBNegativosIva += totalIva;
 
 									}
+									totalFacturaB += totalNetoGravado;
+									totalFacturaBIva += totalIva;
+
 									totalFacturaBFacturaZ_B += totalNetoGravado;
 									totalFacturaBFacturaZ_BIva += totalIva;
+
+								} else if (letra.startsWith("Fc.Z") || letra.startsWith("Nc.Z")) {
+
+									totalFacturaZ += totalNetoGravado;
+									totalFacturaZIva += totalIva;
+
+									if (totalNetoGravado > 0) {
+										totalFacturaZPositivos += totalNetoGravado;
+										totalFacturaZPositivosIva += totalIva;
+
+									} else if (totalNetoGravado < 0) {
+										totalFacturaZNegativos += totalNetoGravado;
+										totalFacturaZNegativosIva += totalIva;
+
+									}
+									if (codigoIva.equalsIgnoreCase("R.Mon")) {
+										System.out.println("Factura " + letra + " - Monotributista: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_A += totalNetoGravado;
+										totalFacturaZ_A_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaZ_A_Positivos_Monotributistas += totalNetoGravado;
+											totalFacturaZ_A_Positivos_MonotributistasIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaZ_A_Negativos_Monotributistas += totalNetoGravado;
+											totalFacturaZ_A_Negativos_MonotributistasIva += totalIva;
+
+										}
+										totalFacturaAFacturaZ_A += totalNetoGravado;
+										totalFacturaAFacturaZ_AIva += totalIva;
+
+									} else if (codigoIva.equalsIgnoreCase("R.Ins")) {
+										System.out.println("Factura " + letra + " - Responsable Inscripto (RI): "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_A += totalNetoGravado;
+										totalFacturaZ_A_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaAPositivosFacturaZ_A_Positivos += totalNetoGravado;
+											totalFacturaAPositivosFacturaZ_A_PositivosIva += totalIva;
+
+											totalFacturaZ_A_Positivos_ResponsableInscripto += totalNetoGravado;
+											totalFacturaZ_A_Positivos_ResponsableInscriptoIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaANegativosFacturaZ_A_Negativos += totalNetoGravado;
+											totalFacturaANegativosFacturaZ_A_NegativosIva += totalIva;
+
+											totalFacturaZ_A_Negativos_ResponsableInscripto += totalNetoGravado;
+											totalFacturaZ_A_Negativos_ResponsableInscriptoIva += totalIva;
+
+										}
+										totalFacturaAFacturaZ_A += totalNetoGravado;
+										totalFacturaAFacturaZ_AIva += totalIva;
+
+									} else if (razonSocial.equalsIgnoreCase("Consumidor Final")
+											|| codigoIva.equalsIgnoreCase("C.Fin")) {
+										System.out.println("Factura " + letra + " - Consumidor Final: "
+												+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+												+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_B += totalNetoGravado;
+										totalFacturaZ_B_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaZ_B_Positivos_ConsumidoresFinales += totalNetoGravado;
+											totalFacturaZ_B_Positivos_ConsumidoresFinalesIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaZ_B_Negativos_ConsumidoresFinales += totalNetoGravado;
+											totalFacturaZ_B_Negativos_ConsumidoresFinalesIva += totalIva;
+
+										}
+										totalFacturaBFacturaZ_B += totalNetoGravado;
+										totalFacturaBFacturaZ_BIva += totalIva;
+
+									} else {
+										System.out
+												.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
+														+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
+														+ formattedTotalIva.replace(".", ",") + "\n");
+										totalFacturaZ_B += totalNetoGravado;
+										totalFacturaZ_B_Iva += totalIva;
+
+										if (totalNetoGravado > 0) {
+											totalFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
+											totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
+
+											totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
+											totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
+
+										} else if (totalNetoGravado < 0) {
+											totalFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
+											totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
+
+											totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
+											totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
+
+										}
+										totalFacturaBFacturaZ_B += totalNetoGravado;
+										totalFacturaBFacturaZ_BIva += totalIva;
+
+									}
 
 								} else {
-									System.out.println("Factura " + letra + " - Exentos, no Alcanzados, no Gravados: "
-											+ formattedTotalNetoGravado.replace(".", ",") + " - IVA: "
-											+ formattedTotalIva.replace(".", ",") + "\n");
-									totalFacturaZ_B += totalNetoGravado;
-									totalFacturaZ_B_Iva += totalIva;
-
-									if (totalNetoGravado > 0) {
-										totalFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaBPositivosFacturaZ_B_Positivos += totalNetoGravado;
-										totalFacturaBPositivosFacturaZ_B_PositivosIva += totalIva;
-
-										totalFacturaZ_B_Positivos_ExentosNoAlcanzados += totalNetoGravado;
-										totalFacturaZ_B_Positivos_ExentosNoAlcanzadosIva += totalIva;
-
-									} else if (totalNetoGravado < 0) {
-										totalFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaBNegativosFacturaZ_B_Negativos += totalNetoGravado;
-										totalFacturaBNegativosFacturaZ_B_NegativosIva += totalIva;
-
-										totalFacturaZ_B_Negativos_ExentosNoAlcanzados += totalNetoGravado;
-										totalFacturaZ_B_Negativos_ExentosNoAlcanzadosIva += totalIva;
-
-									}
-									totalFacturaBFacturaZ_B += totalNetoGravado;
-									totalFacturaBFacturaZ_BIva += totalIva;
-
+									System.out.println("Factura " + letra + " - No clasificada: "
+											+ formattedTotalNetoGravado.replace(".", ","));
+									requiereRevision = true;
 								}
+								if (requiereRevision) {
+									System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
+											+ tipoDocumento + " - " + numeroCliente);
+								}
+							}
 
-							} else {
-								System.out.println("Factura " + letra + " - No clasificada: "
-										+ formattedTotalNetoGravado.replace(".", ","));
-								requiereRevision = true;
-							}
-							if (requiereRevision) {
-								System.out.println("Requiere revisión: " + letra + " - " + razonSocial + " - "
-										+ tipoDocumento + " - " + numeroCliente);
-							}
 						}
 
 					}
@@ -4318,6 +4448,12 @@ public class Main {
 				}
 			}
 			System.out.println("Factura Procesada");
+
+			if (existenRepetidos) {
+				System.out.println("Existen facturas repetidas.");
+			} else {
+				System.out.println("No se encontraron facturas repetidas.");
+			}
 
 			Scanner lector = new Scanner(System.in);
 			String n = lector.nextLine();
