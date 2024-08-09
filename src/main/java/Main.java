@@ -4474,6 +4474,6 @@ public class Main {
  * ACLARACIONES: (1) En este programa codigoIvaCell Tiene prioridad porque el
  * dato es correcto. Por lo que numeroCliente queda descartado de condiciones.
  * (2) Fc y Nc se evaluan siempre, para determinar cual es cual, ahi se
- * determinan los positivos y negativos...
+ * determinan los positivos y negativos.
  * 
  */
